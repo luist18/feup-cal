@@ -30,3 +30,9 @@
 *.exe
 *.out
 *.app
+
+# CLion
+*/cmake-build-debug
+*/.idea
+**/docs/**
+**/googletest-master/**
