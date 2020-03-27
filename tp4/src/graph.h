@@ -170,7 +170,7 @@ bool Vertex<T>::removeEdgeTo(Vertex<T> *d) {
     });
     if (it == adj.end()) return false;
     adj.erase(it);
-    return false;
+    return true;
 }
 
 
@@ -253,7 +253,32 @@ vector<T> Graph<T>::bfs(const T &source) const {
     // TODO (22 lines)
     // HINT: Use the flag "visited" to mark newly discovered vertices .
     // HINT: Use the "queue<>" class to temporarily store the vertices.
+    Vertex<T> *starter = findVertex(source);
+
+    for (Vertex<T> *v : vertexSet)
+        v->visited = false;
+
     vector<T> res;
+    queue<Vertex<T> *> tmp_queue;
+
+    tmp_queue.push(starter);
+    starter->visited = true;
+
+    while (!tmp_queue.empty()) {
+        Vertex<T> *current = tmp_queue.front();
+
+        res.push_back(current->info);
+
+        for (Edge<T> edge : current->adj) {
+            if (!edge.dest->visited) {
+                tmp_queue.push(edge.dest);
+                edge.dest->visited = true;
+            }
+        }
+
+        tmp_queue.pop();
+    }
+
     return res;
 }
 
@@ -270,6 +295,38 @@ template<class T>
 vector<T> Graph<T>::topsort() const {
     // TODO (26 lines)
     vector<T> res;
+
+    for (Vertex<T> *vertex : vertexSet) {
+        vertex->indegree = 0;
+    }
+
+    for (Vertex<T> *vertex : vertexSet) {
+        for (Edge<T> &edge : vertex->adj)
+            edge.dest->indegree++;
+    }
+
+    queue<Vertex<T> *> tmp_queue;
+
+    for (Vertex<T> *vertex : vertexSet) {
+        if (!vertex->indegree)
+            tmp_queue.push(vertex);
+    }
+
+    while (!tmp_queue.empty()) {
+        Vertex<T> *current = tmp_queue.front();
+
+        res.push_back(current->info);
+
+        for (Edge<T> &edge : current->adj) {
+            edge.dest->indegree--;
+
+            if (!edge.dest->indegree)
+                tmp_queue.push(edge.dest);
+        }
+
+        tmp_queue.pop();
+    }
+
     return res;
 }
 
@@ -285,8 +342,40 @@ vector<T> Graph<T>::topsort() const {
 
 template<class T>
 int Graph<T>::maxNewChildren(const T &source, T &inf) const {
-    // TODO (28 lines, mostly reused)
-    return 0;
+    int res = 0;
+    // 1. Breadth first search.
+    // The pos-processing is calculating the out-degree, which is the size of the edges vector.
+    Vertex<T> *starter = findVertex(source);
+
+    for (Vertex<T> *v : vertexSet)
+        v->visited = false;
+
+    queue<Vertex<T> *> tmp_queue;
+    tmp_queue.push(starter);
+    starter->visited = true;
+
+    while (!tmp_queue.empty()) {
+        Vertex<T> *current = tmp_queue.front();
+
+        int count = 0;
+
+        for (Edge<T> edge : current->adj) {
+            if (!edge.dest->visited) {
+                count++;
+                tmp_queue.push(edge.dest);
+                edge.dest->visited = true;
+            }
+        }
+
+        if (count > res) {
+            res = count;
+            inf = current->info;
+        }
+
+        tmp_queue.pop();
+    }
+
+    return res;
 }
 
 /****************** 3b) isDAG   (HOME WORK)  ********************/
@@ -301,8 +390,19 @@ int Graph<T>::maxNewChildren(const T &source, T &inf) const {
 
 template<class T>
 bool Graph<T>::isDAG() const {
-    // TODO (9 lines, mostly reused)
-    // HINT: use the auxiliary field "processing" to mark the vertices in the stack.
+    for (Vertex<T> *v : vertexSet)
+        v->visited = false;
+
+    for (Vertex<T> *v : vertexSet) {
+        if (!v->visited) {
+            for (Vertex<T> *g: vertexSet)
+                g->processing = false;
+
+            if (!dfsIsDAG(v))
+                return false;
+        }
+    }
+
     return true;
 }
 
@@ -312,7 +412,17 @@ bool Graph<T>::isDAG() const {
  */
 template<class T>
 bool Graph<T>::dfsIsDAG(Vertex<T> *v) const {
-    // TODO (12 lines, mostly reused)
+    v->visited = true;
+    v->processing = true;
+
+    for (Edge<T> e : v->adj)
+        if (e.dest->processing)
+            return false;
+        else if (!dfsIsDAG(e.dest))
+                return false;
+        else
+            e.dest->processing = false;
+
     return true;
 }
 
