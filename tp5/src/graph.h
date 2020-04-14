@@ -30,7 +30,7 @@ class Vertex;
 template<class T>
 class Vertex {
     T info;                        // content of the vertex
-    vector<Edge<T> > adj;        // outgoing edges
+    vector<Edge<T>> adj;        // outgoing edges
 
     double dist = 0;
     Vertex<T> *path = NULL;
@@ -113,7 +113,15 @@ template<class T>
 class Graph {
     vector<Vertex<T> *> vertexSet;    // vertex set
 
+    // Floyd Warshall required containers and functions
+    double **distance;
+    int **next;
+
+    int getIndexOf(const T &info) const;
+
 public:
+    ~Graph();
+
     Vertex<T> *findVertex(const T &in) const;
 
     bool addVertex(const T &in);
@@ -135,6 +143,29 @@ public:
     vector<T> getfloydWarshallPath(const T &origin, const T &dest) const;   //TODO...
 
 };
+
+template<class T>
+Graph<T>::~Graph() {
+    /*if (distance != NULL) {
+        for (int i = 0; i < vertexSet.size(); ++i) {
+            if (distance[i] != NULL)
+                delete[] distance[i];
+
+        }
+
+        delete[] distance;
+    }
+
+    if (next != NULL) {
+        for (int i = 0; i < vertexSet.size(); ++i) {
+            if (next[i] != NULL)
+                delete[] next[i];
+
+        }
+
+        delete[] next;
+    }*/
+}
 
 template<class T>
 int Graph<T>::getNumVertex() const {
@@ -258,6 +289,31 @@ void Graph<T>::dijkstraShortestPath(const T &orig) {
 
 template<class T>
 void Graph<T>::bellmanFordShortestPath(const T &orig) {
+    Vertex<T> *source = findVertex(orig);
+
+    if (!source) return;
+
+    for (Vertex<T> *v : vertexSet) {
+        v->dist = INF;
+        v->path = NULL;
+    }
+
+    source->dist = 0;
+
+    for (int i = 1; i < vertexSet.size(); ++i)
+        for (Vertex<T> *v : vertexSet)
+            for (Edge<T> &edge : v->adj) {
+                if (edge.dest->dist > v->dist + edge.weight) {
+                    edge.dest->dist = v->dist + edge.weight;
+                    edge.dest->path = v;
+                }
+            }
+
+    for (Vertex<T> *v : vertexSet)
+        for (Edge<T> &edge : v->adj)
+            if (v->dist + edge.weight < edge.dest->dist )
+                cout << "There are negative cycles!" << endl;
+
 }
 
 
@@ -288,16 +344,68 @@ vector<T> Graph<T>::getPathTo(const T &dest) const {
 /**************** All Pairs Shortest Path  ***************/
 
 template<class T>
+int Graph<T>::getIndexOf(const T &info) const {
+    for (int i = 0; i < vertexSet.size(); ++i)
+        if (vertexSet[i]->info == info) return i;
+
+    return -1;
+}
+
+template<class T>
 void Graph<T>::floydWarshallShortestPath() {
-    // TODO
+    distance = new double *[vertexSet.size()];
+    next = new int *[vertexSet.size()];
+
+    for (int i = 0; i < vertexSet.size(); ++i) {
+        distance[i] = new double[vertexSet.size()];
+        next[i] = new int[vertexSet.size()];
+
+        for (int j = 0; j < vertexSet.size(); ++j) {
+            distance[i][j] = j == i ? 0 : INF;
+            next[i][j] = -1;
+        }
+
+        for (Edge<T> &edge : vertexSet[i]->adj) {
+            int destIndex = getIndexOf(edge.dest->info);
+
+            distance[i][destIndex] = edge.weight;
+            next[i][destIndex] = destIndex;
+        }
+    }
+
+    for (int k = 0; k < vertexSet.size(); ++k) {
+        for (int i = 0; i < vertexSet.size(); ++i) {
+            for (int j = 0; j < vertexSet.size(); ++j) {
+                // Because of the use of infinity the sum below can throw an overflow
+                if (distance[i][k] == INF || distance[k][j] == INF) continue;
+
+                double potentialDistance = distance[i][k] + distance[k][j];
+                if (distance[i][j] > potentialDistance) {
+                    distance[i][j] = potentialDistance;
+                    next[i][j] = next[i][k];
+                }
+            }
+        }
+    }
 }
 
 template<class T>
 vector<T> Graph<T>::getfloydWarshallPath(const T &orig, const T &dest) const {
     vector<T> res;
-    // TODO
+
+    int start = getIndexOf(orig);
+    int end = getIndexOf(dest);
+
+    if (distance[start][dest] == INF) return res;
+
+    int current = start;
+    for (; current != end; current = next[current][end])
+        if (current == -1) return vector<T>();
+        else res.push_back(vertexSet[current]->info);
+
+    if (next[current][dest] == -1) return vector<T>();
+    res.push_back(vertexSet[current]->info);
     return res;
 }
-
 
 #endif /* GRAPH_H_ */
