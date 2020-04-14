@@ -1,9 +1,12 @@
 #include <cstdio>
-#include "src/animation_util.h"
 #include <graphviewer.h>
 #include <fstream>
 #include <iostream>
 #include <sstream>
+#include <string>
+#include <vector>
+#include "src/animation_util.h"
+#include "src/string_util.h"
 
 void exercise1();
 
@@ -88,26 +91,67 @@ void exercise2() {
 
     gv->rearrange();*/
 
-    animate(gv, 200);
+    animate(gv, 20);
 }
 
 void exercise3() {
-// TODO: Implement here exercise 3!
-// To read map files, use relative paths:
-// Vertices data: "../resources/mapa1/nos.txt"
-// Edges data: "../resources/mapa1/arestas.txt"
-// ...
+    auto *gv = new GraphViewer(600, 600, false);
+    gv->createWindow(600, 600);
+
+    // Reading nodes
+    std::ifstream input_nodes("../resources/mapa1/nos.txt");
+
+    if (!input_nodes.is_open()) {
+        cerr << "Could not open the nodes file!" << endl;
+    }
+
+    std::string line;
+
+    while (getline(input_nodes, line)) {
+        std::vector<std::string> out;
+
+        tokenize(line, ';', out);
+
+        if (out.size() != 3) continue;
+
+        if (!is_number(out[0]) || !is_number(out[1]) || !is_number(out[2])) continue;
+
+        gv->addNode(strtol(out[0].c_str(), NULL, 0), strtol(out[1].c_str(), NULL, 0), strtol(out[2].c_str(), NULL, 0));
+        cout << "Read a node: " << strtol(out[0].c_str(), NULL, 0) << ", " << strtol(out[1].c_str(), NULL, 0) << ", "
+             << strtol(out[2].c_str(), NULL, 0)
+             << endl;
+    }
+
+    // Reading edges
+    std::ifstream input_edges("../resources/mapa1/arestas.txt");
+
+    if (!input_edges.is_open()) {
+        cerr << "Could not open the edges file!" << endl;
+    }
+
+    while (getline(input_edges, line)) {
+        std::vector<std::string> out;
+
+        tokenize(line, ';', out);
+
+        if (out.size() != 3) continue;
+
+        if (!is_number(out[0]) || !is_number(out[1]) || !is_number(out[2])) continue;
+
+        gv->addEdge(strtol(out[0].c_str(), NULL, 0), strtol(out[1].c_str(), NULL, 0), strtol(out[2].c_str(), NULL, 0),
+                    EdgeType::UNDIRECTED);
+        cout << "Read an edge: " << strtol(out[0].c_str(), NULL, 0) << ", " << strtol(out[1].c_str(), NULL, 0) << ", "
+             << strtol(out[2].c_str(), NULL, 0)
+             << endl;
+    }
+
+    gv->rearrange();
 }
 
 int main() {
     //exercise1();
-    exercise2();
-
-    /*
-      * Uncomment the line below to run Exercise 3
-      */
-    //
-    //exercicio3();
+    //exercise2();
+    exercise3();
 
     getchar();
     return 0;
