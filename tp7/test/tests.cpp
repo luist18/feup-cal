@@ -66,7 +66,7 @@ TEST(CAL_FP07, testKruskal) {
 
     cout << ss.str() << endl;
 
-    EXPECT_EQ("1<-|2<-1|3<-1|4<-3|5<-4|7<-5|6<-4", ss.str());
+    EXPECT_EQ("1<-|2<-1|3<-1|4<-3|5<-4|7<-5|6<-4|", ss.str());
     // Nota: a melhorar esta verficacao (o que interessa sao as arestas serem selecionadas)
 
 }

@@ -469,8 +469,38 @@ vector<Vertex<T> *> Graph<T>::calculatePrim() {
 
 template<class T>
 vector<Vertex<T> *> Graph<T>::calculateKruskal() {
+    for (auto vertex : vertexSet)
+        vertex->visited = false;
 
-    return vector<Vertex<T> *>();
+    // adds the first vertex
+    vector<Vertex<T> *> res;
+    priority_queue<Edge<T>, vector<Edge<T>>, greater<Edge<T>>> queue;
+
+    for (auto vertex : vertexSet)
+        for (auto edge : vertex->adj)
+            queue.push(edge);
+
+    while (res.size() != vertexSet.size()) {
+        Edge<T> best = queue.top();
+        while (best.dest->path || best.orig->visited && best.dest->visited) {
+            queue.pop();
+            best = queue.top();
+        }
+        queue.pop();
+
+        if (!best.orig->visited) {
+            best.orig->visited = true;
+            res.push_back(best.orig);
+        }
+        if (!best.dest->visited) {
+            best.dest->visited = true;
+            res.push_back(best.dest);
+        }
+
+        best.dest->path = best.orig;
+    }
+
+    return res;
 }
 
 
