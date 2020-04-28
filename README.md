@@ -16,7 +16,8 @@ Each directory represents an exercise sheet, that is, a set of proposed exercise
 * **Exercise sheet 4** - deep-first search, breadth-first search and topological sorting;
 * **Exercise sheet 5** - shortest path (Dijkstra);
 * **Exercise sheet 6** - graph viewer API;
-* **Exercise sheet 7** - minimum spanning tree.
+* **Exercise sheet 7** - minimum spanning tree;
+* **Exercise sheet 8** - maximum flow in transport networks.
 
 ### Disclaimer
 
